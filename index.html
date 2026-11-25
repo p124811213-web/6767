@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>大學生覓食救星 UniEats | 今天吃什麼？</title>
+  <style>
+    :root {
+      --primary: #ff6b35;
+      --primary-hover: #e85a27;
+      --bg: #f7f7f5;
+      --card-bg: #ffffff;
+      --text-main: #1f2937;
+      --text-sub: #6b7280;
+      --border: #e5e7eb;
+      --tag-bg: #fff3ee;
+      --tag-text: #d94e1f;
+      --radius: 16px;
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans TC", sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      line-height: 1.6;
+      padding: 20px 16px 60px;
+    }
+
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    header h1 {
+      font-size: 1.85rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+
+    header p {
+      color: var(--text-sub);
+      font-size: 0.95rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 22px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .filter-group {
+      margin-bottom: 16px;
+    }
+
+    .filter-label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .chip-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      padding: 7px 14px;
+      border-radius: 999px;
+      border: 1.5px solid var(--border);
+      background: #fff;
+      color: var(--text-main);
+      font-size: 0.88rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      user-select: none;
+    }
+
+    .chip:hover {
+      border-color: var(--primary);
+    }
+
+    .chip.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    /* 抽籤結果顯示區 */
+    .result-box {
+      background: linear-gradient(135deg, #fff8f5 0%, #ffffff 100%);
+      border: 2px dashed #ffd5c4;
+      border-radius: 14px;
+      padding: 28px 20px;
+      text-align: center;
+      margin: 20px 0;
+      min-height: 170px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      transition: transform 0.2s ease;
+    }
+
+    .result-box.pop {
+      transform: scale(1.02);
+      border-style: solid;
+      border-color: var(--primary);
+    }
+
+    .result-placeholder {
+      color: var(--text-sub);
+      font-size: 1rem;
+    }
+
+    .result-food {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+
+    .result-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+
+    .badge {
+      background: var(--tag-bg);
+      color: var(--tag-text);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 6px;
+    }
+
+    .result-reason {
+      font-size: 0.92rem;
+      color: var(--text-sub);
+      max-width: 440px;
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 15px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      box-shadow: 0 4px 14px rgba(255, 107, 53, 0.35);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-primary:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary:disabled {
+      background: #fca585;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      margin-top: 10px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-sub);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .btn-secondary:hover {
+      background: #f3f4f6;
+      color: var(--text-main);
+    }
+
+    /* 口袋名單管理區 */
+    .add-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .add-form input, .add-form select {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .add-form input:focus, .add-form select:focus {
+      border-color: var(--primary);
+    }
+
+    .add-form .full-width {
+      grid-column: span 2;
+    }
+
+    .btn-add {
+      grid-column: span 2;
+      padding: 10px;
+      background: #1f2937;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-add:hover {
+      background: #374151;
+    }
+
+    .food-list {
+      max-height: 280px;
+      overflow-y: auto;
+      border-top: 1px solid var(--border);
+      padding-top: 10px;
+    }
+
+    .food-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 6px;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 0.92rem;
+    }
+
+    .food-item-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .food-item-tags {
+      font-size: 0.78rem;
+      color: var(--text-sub);
+    }
+
+    .btn-del {
+      background: #fee2e2;
+      color: #dc2626;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .btn-del:hover {
+      background: #fecaca;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1f2937;
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+      z-index: 100;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+
+    @media (max-width: 480px) {
+      .add-form {
+        grid-template-columns: 1fr;
+      }
+      .add-form .full-width, .btn-add {
+        grid-column: span 1;
+      }
+      header h1 {
+        font-size: 1.55rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>🍱 大學生覓食救星 UniEats</h1>
+    <p>終結每天「等下吃什麼？」的靈魂拷問</p>
+  </header>
+
+  <!-- 抽籤主卡片 -->
+  <div class="card">
+    <div class="section-title">
+      <span>1. 選擇你的現在狀態（可不選）</span>
+      <span id="matchCount" style="color: var(--primary);">符合：22 間</span>
+    </div>
+
+    <div class="filter-group">
+      <span class="filter-label">💰 預算區間</span>
+      <div class="chip-container" id="budgetFilters">
+        <div class="chip active" data-value="all">不限預算</div>
+        <div class="chip" data-value="月底吃土 ($100內)">月底吃土 ($100內)</div>
+        <div class="chip" data-value="日常小確幸 ($100-200)">日常小確幸 ($100-200)</div>
+        <div class="chip" data-value="發薪聚餐 ($200+)">發薪聚餐 ($200+)</div>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <span class="filter-label">⚡ 用餐情境</span>
+      <div class="chip-container" id="tagFilters">
+        <div class="chip active" data-value="all">全部情境</div>
+        <div class="chip" data-value="趕時間">趕早八/課間快吃</div>
+        <div class="chip" data-value="高蛋白">健身/高蛋白</div>
+        <div class="chip" data-value="罪惡宵夜">罪惡宵夜</div>
+        <div class="chip" data-value="雨天外送">雨天懶得出門</div>
+      </div>
+    </div>
+
+    <!-- 結果顯示框 -->
+    <div class="result-box" id="resultBox">
+      <div class="result-placeholder" id="resultPlaceholder">
+        👆 選好條件（或直接開抽），點擊下方按鈕幫你決定！
+      </div>
+      <div id="resultContent" style="display: none;">
+        <div class="result-food" id="resultName">雞腿便當</div>
+        <div class="result-meta" id="resultMeta"></div>
+        <div class="result-reason" id="resultReason">經典不敗，有肉有菜飽足感滿分。</div>
+        <button class="btn-secondary" onclick="copyShareText()">📋 複製結果揪室友/朋友</button>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="drawBtn" onclick="startDraw()">🎲 幫我決定今天吃什麼！</button>
+  </div>
+
+  <!-- 口袋名單管理 -->
+  <div class="card">
+    <div class="section-title">
+      <span>2. 我的學校周邊口袋名單 (<span id="totalCount">0</span>)</span>
+      <button class="btn-secondary" style="margin:0; padding:4px 10px;" onclick="resetDefault()">重置預設</button>
+    </div>
+
+    <div class="add-form">
+      <input type="text" id="newName" placeholder="輸入店名或餐點（例：學餐自助餐）" />
+      <select id="newBudget">
+        <option value="月底吃土 ($100內)">月底吃土 ($100內)</option>
+        <option value="日常小確幸 ($100-200)" selected>日常小確幸 ($100-200)</option>
+        <option value="發薪聚餐 ($200+)">發薪聚餐 ($200+)</option>
+      </select>
+      <select id="newTag">
+        <option value="趕時間">情境：趕早八/課間快吃</option>
+        <option value="高蛋白">情境：健身/高蛋白</option>
+        <option value="罪惡宵夜">情境：罪惡宵夜</option>
+        <option value="雨天外送">情境：雨天懶得出門</option>
+      </select>
+      <input type="text" id="newReason" placeholder="推薦理由（選填，例：加飯免費超佛）" />
+      <button class="btn-add" onclick="addFood()">➕ 加入我的口袋名單</button>
+    </div>
+
+    <div class="food-list" id="foodList"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast">已複製到剪貼簿！</div>
+
+<script>
+  const defaultFoods = [
+    { name: "學餐自助餐（夾三菜一肉）", budget: "月底吃土 ($100內)", tag: "趕時間", reason: "CP值之王，白飯內用吃到飽，趕下堂課首選。" },
+    { name: "超商組合：雞胸肉 + 茶葉蛋 + 無糖豆漿", budget: "月底吃土 ($100內)", tag: "高蛋白", reason: "練完腿或打完球不知道吃什麼？乾淨蛋白質直接補滿。" },
+    { name: "大腸麵線 + 蒜泥香菜加爆", budget: "月底吃土 ($100內)", tag: "趕時間", reason: "五分鐘就能吃完的台灣靈魂小吃，銅板價解決一餐。" },
+    { name: "滷肉飯（大）+ 燙青菜 + 貢丸湯", budget: "月底吃土 ($100內)", tag: "趕時間", reason: "月底錢包見底時的救贖，有湯有菜有熱量。" },
+    { name: "鍋貼 10 顆 + 酸辣湯", budget: "月底吃土 ($100內)", tag: "雨天外送", reason: "上菜速度快，不知道吃什麼時的無腦安全牌。" },
+    { name: "麥當勞 1+1 星級點（$50/$69）", budget: "月底吃土 ($100內)", tag: "罪惡宵夜", reason: "月底想吃速食又不想花大錢的最佳解。" },
+    { name: "健康低卡水煮雞胸餐盒", budget: "日常小確幸 ($100-200)", tag: "高蛋白", reason: "紫米飯配滿滿原型食物，吃完下午上課不會想睡覺。" },
+    { name: "炸雞腿便當（自選三配菜）", budget: "日常小確幸 ($100-200)", tag: "雨天外送", reason: "卡滋酥脆的雞腿配白飯，大學生最經典的能量來源。" },
+    { name: "日式牛丼（中碗）+ 溫泉蛋", budget: "日常小確幸 ($100-200)", tag: "趕時間", reason: "出餐神速，滑順蛋液拌牛肉飯一口接一口。" },
+    { name: "麻辣燙 / 個人小火鍋", budget: "日常小確幸 ($100-200)", tag: "雨天外送", reason: "天氣冷或下雨天喝口熱湯最舒服，還能順便吃很多青菜。" },
+    { name: "台式鹹酥雞（無骨雞塊+甜不辣+百頁）", budget: "日常小確幸 ($100-200)", tag: "罪惡宵夜", reason: "報告寫不出來或剛考完期中？你需要一點高熱量快樂。" },
+    { name: "Subway 6吋嫩切雞肉潛艇堡", budget: "日常小確幸 ($100-200)", tag: "高蛋白", reason: "蔬菜可以自己選滿，清爽無負擔又兼顧蛋白質。" },
+    { name: "泰式打拋豬肉飯（加一顆半熟荷包蛋）", budget: "日常小確幸 ($100-200)", tag: "雨天外送", reason: "酸辣下飯，沒胃口的時候吃這道瞬間開胃。" },
+    { name: "巷口乾意麵 + 餛飩湯 + 嘴邊肉", budget: "日常小確幸 ($100-200)", tag: "趕時間", reason: "簡單樸實的古早味，快速解決一餐。" },
+    { name: "平價義大利麵（奶油培根/青醬雞肉）", budget: "日常小確幸 ($100-200)", tag: "雨天外送", reason: "想換換西式口味時的好選擇，通常還有免費紅茶喝。" },
+    { name: "永和豆漿（蛋餅+蘿蔔糕+冰豆漿）", budget: "月底吃土 ($100內)", tag: "罪惡宵夜", reason: "半夜肚子餓不知道吃什麼，中式早餐店永遠為你亮燈。" },
+    { name: "韓式豆腐鍋（附白飯與小菜）", budget: "日常小確幸 ($100-200)", tag: "雨天外送", reason: "微辣湯頭配白飯超滿足，適合跟同學一起坐下來吃。" },
+    { name: "臭豆腐 + 鴨血豆腐煲（小辣）", budget: "日常小確幸 ($100-200)", tag: "罪惡宵夜", reason: "重口味愛好者首選，晚餐或宵夜吃都超爽。" },
+    { name: "日式拉麵（豚骨/雞白湯）", budget: "發薪聚餐 ($200+)", tag: "發薪聚餐 ($200+)", reason: "剛領家教費或打工薪水？去吃碗濃郁拉麵犒賞自己吧！" },
+    { name: "燒肉丼飯（雙倍肉量版）", budget: "發薪聚餐 ($200+)", tag: "高蛋白", reason: "大口吃肉的爽感，蛋白質與幸福感同時爆表。" },
+    { name: "藏壽司 / 壽司郎 迴轉壽司", budget: "發薪聚餐 ($200+)", tag: "高蛋白", reason: "吃多少拿多少好控制熱量，還能順便抽扭蛋。" },
+    { name: "吃到飽火鍋 / 韓式烤肉聚餐", budget: "發薪聚餐 ($200+)", tag: "發薪聚餐 ($200+)", reason: "別自己吃了，快在群組喊一聲揪室友同學一起去！" }
+  ];
+
+  let foods = JSON.parse(localStorage.getItem("unieats_foods")) || [...defaultFoods];
+  let selectedBudget = "all";
+  let selectedTag = "all";
+  let lastPickedName = "";
+  let currentResult = null;
+
+  // 初始化篩選器點擊事件
+  function setupFilters(containerId, type) {
+    const chips = document.querySelectorAll(`#${containerId} .chip`);
+    chips.forEach(chip => {
+      chip.addEventListener("click", () => {
+        chips.forEach(c => c.classList.remove("active"));
+        chip.classList.add("active");
+        if (type === "budget") selectedBudget = chip.dataset.value;
+        if (type === "tag") selectedTag = chip.dataset.value;
+        updateMatchCount();
+      });
+    });
+  }
+
+  function getFilteredFoods() {
+    return foods.filter(item => {
+      const budgetMatch = selectedBudget === "all" || item.budget === selectedBudget;
+      const tagMatch = selectedTag === "all" || item.tag === selectedTag;
+      return budgetMatch && tagMatch;
+    });
+  }
+
+  function updateMatchCount() {
+    const count = getFilteredFoods().length;
+    document.getElementById("matchCount").textContent = `符合：${count} 間`;
+  }
+
+  // 抽籤動畫與邏輯
+  function startDraw() {
+    const pool = getFilteredFoods();
+    if (pool.length === 0) {
+      showToast("😅 沒有符合這個條件的餐點，試著放寬條件或新增一間吧！");
+      return;
+    }
+
+    const btn = document.getElementById("drawBtn");
+    const box = document.getElementById("resultBox");
+    const placeholder = document.getElementById("resultPlaceholder");
+    const content = document.getElementById("resultContent");
+    const nameEl = document.getElementById("resultName");
+    const metaEl = document.getElementById("resultMeta");
+    const reasonEl = document.getElementById("resultReason");
+
+    btn.disabled = true;
+    box.classList.remove("pop");
+    placeholder.style.display = "none";
+    content.style.display = "block";
+    metaEl.innerHTML = "";
+    reasonEl.textContent = "正在幫你翻遍美食清單...";
+
+    let ticks = 0;
+    const maxTicks = 16;
+    const interval = setInterval(() => {
+      const randomTemp = pool[Math.floor(Math.random() * pool.length)];
+      nameEl.textContent = randomTemp.name;
+      ticks++;
+
+      if (ticks >= maxTicks) {
+        clearInterval(interval);
+        // 盡量避免連續兩次抽到同一間
+        let candidates = pool.length > 1 ? pool.filter(f => f.name !== lastPickedName) : pool;
+        const finalPick = candidates[Math.floor(Math.random() * candidates.length)];
+        lastPickedName = finalPick.name;
+        currentResult = finalPick;
+
+        nameEl.textContent = finalPick.name;
+        metaEl.innerHTML = `<span class="badge">${finalPick.budget}</span><span class="badge">#${finalPick.tag}</span>`;
+        reasonEl.textContent = finalPick.reason || "今天就是它了，別再猶豫快出發！";
+
+        box.classList.add("pop");
+        btn.disabled = false;
+        btn.textContent = "🔄 不滿意？再幫我抽一次！";
+      }
+    }, 65);
+  }
+
+  function copyShareText() {
+    if (!currentResult) return;
+    const text = `🍱 UniEats 幫我決定今天吃：【${currentResult.name}】(${currentResult.budget})！理由：${currentResult.reason} 要不要一起走？`;
+    navigator.clipboard.writeText(text).then(() => {
+      showToast("✅ 已複製推薦卡片！快去貼給朋友");
+    });
+  }
+
+  // 口袋名單渲染與操作
+  function renderList() {
+    const listEl = document.getElementById("foodList");
+    document.getElementById("totalCount").textContent = foods.length;
+    listEl.innerHTML = "";
+
+    foods.forEach((food, index) => {
+      const div = document.createElement("div");
+      div.className = "food-item";
+      div.innerHTML = `
+        <div class="food-item-info">
+          <strong>${food.name}</strong>
+          <span class="food-item-tags">${food.budget} · #${food.tag}</span>
+        </div>
+        <button class="btn-del" onclick="deleteFood(${index})">刪除</button>
+      `;
+      listEl.appendChild(div);
+    });
+
+    updateMatchCount();
+  }
+
+  function addFood() {
+    const nameInput = document.getElementById("newName");
+    const budgetInput = document.getElementById("newBudget");
+    const tagInput = document.getElementById("newTag");
+    const reasonInput = document.getElementById("newReason");
+
+    const name = nameInput.value.trim();
+    if (!name) {
+      showToast("⚠️ 請先輸入店名或餐點名稱！");
+      return;
+    }
+
+    foods.unshift({
+      name: name,
+      budget: budgetInput.value,
+      tag: tagInput.value,
+      reason: reasonInput.value.trim() || "你自己收藏的愛店，絕對不會踩雷！"
+    });
+
+    saveFoods();
+    nameInput.value = "";
+    reasonInput.value = "";
+    renderList();
+    showToast("🎉 已成功加入你的口袋名單！");
+  }
+
+  function deleteFood(index) {
+    foods.splice(index, 1);
+    saveFoods();
+    renderList();
+    showToast("🗑️ 已刪除該項目");
+  }
+
+  function resetDefault() {
+    if (confirm("確定要恢復成系統預設的 22 項大學生美食清單嗎？")) {
+      foods = [...defaultFoods];
+      saveFoods();
+      renderList();
+      showToast("🔄 已重置為預設清單");
+    }
+  }
+
+  function saveFoods() {
+    localStorage.setItem("unieats_foods", JSON.stringify(foods));
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById("toast");
+    toast.textContent = msg;
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 2500);
+  }
+
+  // 啟動初始化
+  setupFilters("budgetFilters", "budget");
+  setupFilters("tagFilters", "tag");
+  renderList();
+</script>
+</body>
+</html>
